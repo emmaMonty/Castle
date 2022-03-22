@@ -31,12 +31,13 @@ room(alnwick, foyer, passage, 1).
 room(alnwick, passage, foundry, 1).
 room(alnwick, foundry, exit, 4).
 
-%helper code that generates
-
+%helper code that generates permutations
+%https://stackoverflow.com/questions/9134380/how-to-access-list-permutations-in-prolog
 takeout(X, [X|R], R).
 takeout(X,[F |R], [F|S]) :-
     takeout(X,R,S).
 
+%permutations function
 perm([X|Y],Z):-
     perm(Y,W),
     takeout(X,Z,W).
@@ -54,6 +55,23 @@ solveRoom(Castle, Rooms,Path):-
     perm(Rooms, PermutedRooms),
     findTour(Castle, enter, PermutedRooms,Path).
 
+solveRoomsWithinCost(Castle, Cost):-
+    solveRoom(Castle, [enter], Path),
+    pathCost(Castle, Path, PathCost),
+    PathCost =< Cost,
+    write("Cost is"),
+    write(PathCost),
+    write("with limit"),
+    writeln(Cost),
+    printList(Path).
+
+pathCost(_,[],1).
+pathCost(Castle, [FirstRoom | RestRoom], Total):-
+    RestRoom = [SecondRoom | _ ],
+    room(Castle,FirstRoom,SecondRoom, RoomCost),
+    pathCost(Castle, RestRoom, RestCost),
+    Total is RoomCost + RestCost.
+
 %findTour(Castle, AtRoom, Rooms)
 findTour(Castle, AtRoom, [], PathAtExit):-
     reachable(Castle, AtRoom, exit, PathAtExit).
@@ -63,8 +81,7 @@ findTour(Castle, AtRoom, [OneRoom | RestRooms], Path):-
     findTour(Castle, OneRoom, RestRooms, PathRest),
     append(PathAtOne, PathRest, Path).
 
-
-
+%this is the print function
 printList([]).
 printList([F | R]):- 
     writeln(F), 
